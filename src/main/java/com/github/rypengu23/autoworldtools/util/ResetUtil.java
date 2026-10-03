@@ -9,7 +9,14 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ResetUtil {
 
@@ -170,6 +177,8 @@ public class ResetUtil {
      */
     public void regenerateWorld(int worldType) {
 
+        ConvertUtil convertUtil = new ConvertUtil();
+
         //ワールド名リストの取得
         ArrayList<ResetWorldModel> worldList = new ArrayList<>();
         if (worldType == 0) {
@@ -182,88 +191,163 @@ public class ResetUtil {
 
         //ワールド再生成
         for (ResetWorldModel worldInfo : worldList) {
-            Bukkit.getLogger().info("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetStart + worldInfo.getWorldName());
-            World resetWorld = Bukkit.getWorld(worldInfo.getWorldName());
-            if (resetWorld != null) {
-
-                //プレイヤー退避
-                movePlayer(resetWorld);
-
-                //ワールド削除
-                Bukkit.unloadWorld(resetWorld, false);
-                deleteDirectory(resetWorld.getWorldFolder());
-
-                //ワールド生成
-                WorldCreator worldCreator = new WorldCreator(worldInfo.getWorldName());
-                if (worldInfo.useSeed()) {
-                    worldCreator.seed(worldInfo.getSeed());
-                } else {
-                    Random r = new Random();
-                    worldCreator.seed(r.nextLong());
-                }
-                if (worldType == 0) {
-                    worldCreator.environment(World.Environment.NORMAL);
-                } else if (worldType == 1) {
-                    worldCreator.environment(World.Environment.NETHER);
-                } else {
-                    worldCreator.environment(World.Environment.THE_END);
-                }
-                worldCreator.createWorld();
-
-                //ワールドボーダーをセット
-                int worldSize = 0;
-                if (worldType == 0) {
-                    worldSize = mainConfig.getWorldOfNormalSize();
-                } else if (worldType == 1) {
-                    worldSize = mainConfig.getWorldOfNetherSize();
-                } else {
-                    worldSize = mainConfig.getWorldOfEndSize();
-                }
-                WorldBorder worldBorder = Bukkit.getWorld(worldInfo.getWorldName()).getWorldBorder();
-                worldBorder.setCenter(0.0, 0.0);
-                worldBorder.setSize(worldSize);
-
-                //Dynmap削除
-                if (mainConfig.isUseDynmap()) {
-                    DynmapUtil dynmapUtil = new DynmapUtil();
-                    dynmapUtil.deleteMapDataOfWorldName(worldInfo.getWorldName());
-                }
-
-                Bukkit.getLogger().info("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetComp + worldInfo.getWorldName());
-
-            } else {
-                Bukkit.getLogger().warning("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetFailure + worldInfo.getWorldName());
+            String worldName = worldInfo.getWorldName();
+            Bukkit.getLogger().info("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetStart + worldName);
+            World resetWorld = Bukkit.getWorld(worldName);
+            if (resetWorld == null) {
+                Bukkit.getLogger().warning("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetFailure + worldName);
+                continue;
             }
+
+            //削除対象フォルダのパスを先に控えておく(アンロード後は World から取得できない)
+            File worldFolder = resetWorld.getWorldFolder();
+
+            //プレイヤー退避
+            movePlayer(resetWorld);
+
+            //ワールド削除(アンロード)
+            //アンロードに失敗した場合はそのまま再作成すると旧データと混ざるため、スキップする
+            if (!Bukkit.unloadWorld(resetWorld, false) || Bukkit.getWorld(worldName) != null) {
+                Bukkit.getLogger().warning("[AutoWorldTools] " + ConsoleMessage.ResetUtil_unloadFailure + worldName);
+                continue;
+            }
+
+            //ワールドフォルダ削除
+            Bukkit.getLogger().info("[AutoWorldTools] " + convertUtil.placeholderUtil("{worldname}", worldName, "{folder}", worldFolder.getPath(), ConsoleMessage.ResetUtil_deleteStart));
+            deleteDirectory(worldFolder);
+            int remainingFileCount = countRemainingFiles(worldFolder);
+            if (remainingFileCount > 0) {
+                Bukkit.getLogger().warning("[AutoWorldTools] " + convertUtil.placeholderUtil("{folder}", worldFolder.getPath(), "{remaining}", String.valueOf(remainingFileCount), ConsoleMessage.ResetUtil_deleteFailure));
+            }
+
+            //ワールド生成
+            WorldCreator worldCreator = new WorldCreator(worldName);
+            if (worldInfo.useSeed()) {
+                worldCreator.seed(worldInfo.getSeed());
+            } else {
+                Random r = new Random();
+                worldCreator.seed(r.nextLong());
+            }
+            if (worldType == 0) {
+                worldCreator.environment(World.Environment.NORMAL);
+            } else if (worldType == 1) {
+                worldCreator.environment(World.Environment.NETHER);
+            } else {
+                worldCreator.environment(World.Environment.THE_END);
+            }
+            World createdWorld = worldCreator.createWorld();
+            if (createdWorld == null) {
+                Bukkit.getLogger().warning("[AutoWorldTools] " + ConsoleMessage.ResetUtil_createFailure + worldName);
+                continue;
+            }
+
+            //再生成されたワールドの検証用ログ( ….mca が増えていたら削除失敗の疑いがある)
+            File levelDat = new File(worldFolder, "level.dat");
+            Bukkit.getLogger().info("[AutoWorldTools] " + convertUtil.placeholderUtil(
+                    "{worldname}", worldName,
+                    "{filecount}", String.valueOf(countRemainingFiles(worldFolder)),
+                    "{leveldat}", String.valueOf(levelDat.lastModified()),
+                    ConsoleMessage.ResetUtil_newWorldInfo));
+
+            //ワールドボーダーをセット
+            int worldSize = 0;
+            if (worldType == 0) {
+                worldSize = mainConfig.getWorldOfNormalSize();
+            } else if (worldType == 1) {
+                worldSize = mainConfig.getWorldOfNetherSize();
+            } else {
+                worldSize = mainConfig.getWorldOfEndSize();
+            }
+            WorldBorder worldBorder = createdWorld.getWorldBorder();
+            worldBorder.setCenter(0.0, 0.0);
+            worldBorder.setSize(worldSize);
+
+            //Dynmap削除
+            if (mainConfig.isUseDynmap()) {
+                DynmapUtil dynmapUtil = new DynmapUtil();
+                dynmapUtil.deleteMapDataOfWorldName(worldName);
+            }
+
+            Bukkit.getLogger().info("[AutoWorldTools] " + ConsoleMessage.ResetUtil_resetComp + worldName);
+
         }
 
     }
 
+    /**
+     * フォルダを再帰的に削除する。
+     * 削除できなかったファイルは数え、ログに出力する。
+     *
+     * @param file
+     * @return 削除に成功した場合 true
+     */
     public boolean deleteDirectory(File file) {
-        if (file.exists()) {
+        if (!file.exists()) {
+            return false;
+        }
 
-            //ファイル存在チェック
-            if (file.isFile()) {
-                //存在したら削除する
-                file.delete();
+        final int[] failedCount = {0};
 
-                //対象がディレクトリの場合
-            } else if (file.isDirectory()) {
+        try {
+            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
 
-                //ディレクトリ内の一覧を取得
-                File[] files = file.listFiles();
-
-                //存在するファイル数分ループして再帰的に削除
-                for (int i = 0; i < files.length; i++) {
-                    deleteDirectory(files[i]);
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException e) {
+                        failedCount[0]++;
+                        Bukkit.getLogger().warning("[AutoWorldTools] " + path + " : " + e.getMessage());
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
 
-                //ディレクトリを削除する
-                file.delete();
-            }
+                @Override
+                public FileVisitResult visitFileFailed(Path path, IOException e) {
+                    failedCount[0]++;
+                    Bukkit.getLogger().warning("[AutoWorldTools] " + path + " : " + e.getMessage());
+                    return FileVisitResult.CONTINUE;
+                }
 
-            return true;
-        } else {
+                @Override
+                public FileVisitResult postVisitDirectory(Path path, IOException e) {
+                    if (e != null) {
+                        failedCount[0]++;
+                        Bukkit.getLogger().warning("[AutoWorldTools] " + path + " : " + e.getMessage());
+                        return FileVisitResult.CONTINUE;
+                    }
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException ex) {
+                        failedCount[0]++;
+                        Bukkit.getLogger().warning("[AutoWorldTools] " + path + " : " + ex.getMessage());
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            Bukkit.getLogger().warning("[AutoWorldTools] " + file.getPath() + " : " + e.getMessage());
             return false;
+        }
+
+        return failedCount[0] == 0 && !file.exists();
+    }
+
+    /**
+     * フォルダ内に残っているファイル数を返す(削除失敗の確認用)。
+     *
+     * @param file
+     * @return ファイル数。存在しない場合は0
+     */
+    public int countRemainingFiles(File file) {
+        if (!file.exists()) {
+            return 0;
+        }
+        try (Stream<Path> stream = Files.walk(file.toPath())) {
+            return (int) stream.filter(Files::isRegularFile).count();
+        } catch (IOException e) {
+            Bukkit.getLogger().warning("[AutoWorldTools] " + file.getPath() + " : " + e.getMessage());
+            return -1;
         }
     }
 

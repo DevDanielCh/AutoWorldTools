@@ -267,7 +267,7 @@ mvn clean package \
   -Dmultiverse.portals.jar=/caminho/multiverse-portals-5.3.0.jar
 ```
 
-O artefato é gerado em `target/AutoWorldTools-1.8.jar`.
+O artefato é gerado em `target/AutoWorldTools-1.9.jar`.
 
 > Os jars podem ser obtidos nas releases oficiais: [Multiverse-Core](https://github.com/Multiverse/Multiverse-Core/releases) e [Multiverse-Portals](https://github.com/Multiverse/Multiverse-Portals/releases). O `multiverse-core.jar` é necessário apenas para compilar (os tipos do Core aparecem nas assinaturas de `PortalLocation`/`MultiverseRegion` do Portals); em runtime ele é opcional.
 
@@ -280,7 +280,7 @@ O workflow `.github/workflows/build.yml` faz o build do jar no próprio GitHub:
 | `push` na branch `master` | Compila, publica o jar como artefato da execução **e anexa o jar na release da versão atual** |
 | `pull_request` | Compila para validar as alterações (não publica nada) |
 | `workflow_dispatch` | Compila manualmente pelo botão *Run workflow* |
-| `git push v1.8.0` (tag `v*`) | Build da tag; a release `v1.8` recebe/atualiza o jar |
+| `git push v1.9.0` (tag `v*`) | Build da tag; a release `v1.9` recebe/atualiza o jar |
 
 Etapas do job:
 
@@ -288,9 +288,9 @@ Etapas do job:
 2. `mvn -B clean package` com Java 17.
 3. Valida o jar gerado (existe, tem `plugin.yml` e a classe principal) e grava o `sha256`.
 4. Envia o artefato para a aba *Actions*.
-5. **Release:** cria a release `v<versão do pom.xml>` (ex.: `v1.8`) com o jar e o `jar.sha256`; se ela já existir, os arquivos são substituídos. Assim a release de cada versão sempre tem o build mais recente, sem precisar criar tag manualmente.
+5. **Release:** cria a release `v<versão do pom.xml>` (ex.: `v1.9`) com o jar e o `jar.sha256`; se ela já existir, os arquivos são substituídos. Assim a release de cada versão sempre tem o build mais recente, sem precisar criar tag manualmente.
 
-> Publicar uma versão nova = alterar a tag `<version>` do `pom.xml` (e a `version` do `plugin.yml`). Ao dar push, nasce a release correspondente. Se preferir publicar manualmente, apague o último passo do workflow e use `gh release create v1.8.0`.
+> Publicar uma versão nova = alterar a tag `<version>` do `pom.xml` (e a `version` do `plugin.yml`). Ao dar push, nasce a release correspondente. Se preferir publicar manualmente, apague o último passo do workflow e use `gh release create v1.9.0`.
 
 Basta ir em **Actions → Build → Run workflow** para baixar o jar sem precisar de Maven local.
 

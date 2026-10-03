@@ -15,7 +15,7 @@ import org.bukkit.scheduler.BukkitTask;
 public final class AutoWorldTools extends JavaPlugin {
 
     //バージョン
-    public static double pluginVersion = 1.8;
+    public static double pluginVersion = 1.9;
 
     //インスタンス
     private static AutoWorldTools instance = null;
@@ -202,7 +202,7 @@ public final class AutoWorldTools extends JavaPlugin {
 
             } else {
                 //引数が無ければバージョン情報
-                sender.sendMessage("§a" + messageConfig.getPrefix() + " §fAutoWorldTools Ver1.1");
+                sender.sendMessage("§a" + messageConfig.getPrefix() + " §fAutoWorldTools Ver1.9");
                 sender.sendMessage("§a" + messageConfig.getPrefix() + " §fDeveloper: rypengu23");
             }
 

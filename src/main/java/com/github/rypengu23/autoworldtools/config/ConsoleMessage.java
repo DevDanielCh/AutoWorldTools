@@ -28,6 +28,11 @@ public class ConsoleMessage {
     public static String ResetUtil_resetComp;
     public static String ResetUtil_resetFailure;
     public static String ResetUtil_resetFailureNotConnectedMultiverseCore;
+    public static String ResetUtil_unloadFailure;
+    public static String ResetUtil_deleteStart;
+    public static String ResetUtil_deleteFailure;
+    public static String ResetUtil_createFailure;
+    public static String ResetUtil_newWorldInfo;
 
     public static String BackupUtil_backupStart;
     public static String BackupUtil_startZip;
@@ -93,6 +98,11 @@ public class ConsoleMessage {
             ResetUtil_resetComp = "リセット完了。 ワールド名:";
             ResetUtil_resetFailure = "ワールドが見つからないため、リセットに失敗しました。 ワールド名:";
             ResetUtil_resetFailureNotConnectedMultiverseCore = "Multiverse-Coreの読み込みに失敗したため、リセットに失敗しました。";
+            ResetUtil_unloadFailure = "ワールドをアンロードできなかったため、リセットをスキップしました。 ワールド名:";
+            ResetUtil_deleteStart = "ワールドフォルダを削除します。 ワールド名:{worldname} フォルダ:{folder}";
+            ResetUtil_deleteFailure = "ワールドフォルダを完全に削除できませんでした(残存ファイルあり)。 フォルダ:{folder} 残存:{remaining}";
+            ResetUtil_createFailure = "ワールドを再作成できなかったため、リセットに失敗しました。 ワールド名:";
+            ResetUtil_newWorldInfo = "再作成されたワールド。 ワールド名:{worldname} フォルダ内のファイル数:{filecount} level.dat更新日時:{leveldat}";
 
             BackupUtil_backupStart = "バックアップを開始します。 ワールド名:";
             BackupUtil_startZip = "ワールドファイルの圧縮中...";
@@ -151,6 +161,11 @@ public class ConsoleMessage {
             ResetUtil_resetComp = "Reset complete. World:";
             ResetUtil_resetFailure = "Reset failure. Not Found world. World:";
             ResetUtil_resetFailureNotConnectedMultiverseCore = "Reset failure. Not connected Multiverse-Core.";
+            ResetUtil_unloadFailure = "Reset skipped. Failed to unload world. World:";
+            ResetUtil_deleteStart = "Deleting world folder. World:{worldname} Folder:{folder}";
+            ResetUtil_deleteFailure = "World folder was not fully deleted. Folder:{folder} Remaining:{remaining}";
+            ResetUtil_createFailure = "Reset failure. Failed to create world. World:";
+            ResetUtil_newWorldInfo = "Recreated world. World:{worldname} Files in folder:{filecount} level.dat:{leveldat}";
 
             BackupUtil_backupStart = "Backup start. World:";
             BackupUtil_startZip = "Compressing world file...  World:";
