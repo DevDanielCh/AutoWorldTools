@@ -13,8 +13,18 @@
 
     <description>World auto reset and backup plugin</description>
     <properties>
-        <java.version>1.8</java.version>
+        <!-- Multiverse 5.x exige Java 17+ -->
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!--
+            Os jars do Multiverse 5.x não são publicados em repositorios Maven publicos
+            (a Multiverse publica apenas no GitHub Packages, que exige autenticacao).
+            Coloque os jars em ./libs/ ou aponte para outro caminho, ex.:
+            mvn clean package -Dmultiverse.core.jar=/caminho/multiverse-core-5.8.1.jar
+        -->
+        <multiverse.core.jar>${project.basedir}/libs/multiverse-core.jar</multiverse.core.jar>
+        <multiverse.portals.jar>${project.basedir}/libs/multiverse-portals.jar</multiverse.portals.jar>
     </properties>
 
     <build>
@@ -24,8 +34,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -55,10 +64,6 @@
 
     <repositories>
         <repository>
-            <id>local-repo</id>
-            <url>file://${user.home}/.m2/repository</url>
-        </repository>
-        <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
@@ -76,11 +81,7 @@
         </repository>
         <repository>
             <id>mikeprimm</id>
-            <url>http://repo.mikeprimm.com</url>
-        </repository>
-        <repository>
-            <id>benthecat</id>
-            <url>https://repo.c0ding.party/multiverse-beta</url>
+            <url>https://repo.mikeprimm.com</url>
         </repository>
         <repository>
             <id>sk89q-repo</id>
@@ -96,19 +97,26 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!--
+                Necessario em tempo de compilacao apenas. O codigo deste plugin usa a API
+                do Multiverse-Core indiretamente (tipos como MultiverseWorld aparecem nas
+                assinaturas de PortalLocation/MultiverseRegion do Multiverse-Portals).
+                Em runtime o Multiverse-Core e opcional.
+            -->
             <groupId>org.mvplugins.multiverse.portals</groupId>
             <artifactId>multiverse-portals</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>C:/GitHub/Multiverse-Portals/build/libs/multiverse-portals-local.jar</systemPath>
+            <systemPath>${multiverse.portals.jar}</systemPath>
         </dependency>
         <dependency>
             <groupId>org.mvplugins.multiverse.core</groupId>
             <artifactId>multiverse-core</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>C:/GitHub/Multiverse-Core/build/libs/multiverse-core-local.jar</systemPath>
+            <systemPath>${multiverse.core.jar}</systemPath>
         </dependency>
+        <!-- WorldEdit: exigido em runtime pelo Multiverse-Portals, nao usado direto aqui. -->
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-core</artifactId>
@@ -164,10 +172,15 @@
             <artifactId>dynmap</artifactId>
             <version>3.1</version>
         </dependency>-->
+        <!--
+            Dynmap: o purge e feito via comando ("dynmap purgeworld"), sem uso da API.
+            Escopo provided para nao embutir a API no jar do plugin.
+        -->
         <dependency>
             <groupId>org.dynmap</groupId>
             <artifactId>dynmap-api</artifactId>
             <version>2.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

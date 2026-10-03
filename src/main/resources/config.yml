@@ -2,207 +2,166 @@
 #  AutoWorldTools
 # =======================================
 #
-# Auto regenerate world and reset tool.
-# 自動ワールド再生成 & バックアッププラグイン。
+#  Regeneração e backup automático de mundos.
 #
 # @author     rypengu23
 # @copyright  Copyright ryoengu23 2021
-version: 1.7
+version: 1.8
 # =======================================
 
 setting:
-  # MessageLanguage (en/ja)
-  # アナウンス・コマンド実行時の言語
+  # Idioma das mensagens no chat (en/ja)
   # en:English
   # ja:日本語
   language: "en"
 
-  # ConsoleLanguage (en/ja)
-  # コンソールメッセージの言語
+  # Idioma das mensagens no console (en/ja)
   # en:English
   # ja:日本語
   consoleLanguage: "en"
 
-  # Whether to reset automatically at the set time.（true/false）
-  # 指定時刻に自動でリセットするかどうか
+  # Se deve resetar os mundos automaticamente no horário definido. (true/false)
   autoReset: true
-  # Whether to backup automatically at the set time.（true/false）
-  # 指定時刻に自動でバックアップするかどうか
+
+  # Se deve fazer backup dos mundos automaticamente no horário definido. (true/false)
   autoBackup: true
-  # Whether to restart automatically at the set time.（true/false）
-  # 指定時刻に自動で再起動するかどうか
+
+  # Se deve reiniciar o servidor automaticamente no horário definido. (true/false)
   autoRestart: true
 
-  # Whether to send a message to the main channel of Discord SRV when the reset or backup is completed
-  # リセット・バックアップ完了時にDiscordSRVのメインチャンネルにメッセージを送信するかどうか
+  # Se deve enviar mensagem no canal principal do DiscordSRV ao iniciar/concluir
+  # o reset, o backup ou o reinício.
   useDiscordSRV: false
 
-  # Maximum storage amount
-  # バックアップの保存上限数
+  # Quantidade máxima de backups mantidos por mundo.
+  # Os arquivos mais antigos são removidos automaticamente.
   backupLimit: 30
 
 # =======================================
-#  Reset setting
+#  Configuração do reset
 # =======================================
 
 resetTime:
-  # Day of the week for automatic reset. (sun,mon,tue,wed,thu,fri,sat)
-  # リセットを行う曜日
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載 (,)
+  # Dia da semana do reset automático. (sun,mon,tue,wed,thu,fri,sat)
+  # Para informar mais de um dia, separe por vírgula. (,)
   resetDayOfTheWeek: "sun"
 
-  # Reset time
-  # リセットを行う時刻（hh:mm)
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載
+  # Horário do reset (hh:mm)
+  # Para informar mais de um horário, separe por vírgula. (,)
   resetTime: "00:00"
 
-  # Notify before reset time. (second)
-  # リセット時刻何秒前に通知するか（秒)
-  # If you specify more than one, separate them with commas. (,) Blank if you do not want to be notified.
-  # 複数指定する場合、カンマ区切りで記載。 通知を行わない場合、空白のみにする。
+  # Avisos antes do reset, em segundos.
+  # Para informar mais de um, separe por vírgula. (,)
+  # Deixe em branco se não quiser avisos.
   resetNotifyTime: "300,60,30,10,5,4,3,2,1"
 
 resetWorldInfo:
-  # World name to reset
-  # リセットを行うワールド名
-  # When specifying the seed value after reset, add a colon after the world name and write it after it. Example) material:0123456789
-  # リセット後のシード値を指定する場合、ワールド名の後ろにコロンを付けてその後ろに記載する。例) material:0123456789
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載
+  # Nome dos mundos que serão resetados.
+  # Para fixar a seed após o reset, acrescente ":" e o valor depois do nome do mundo.
+  # Exemplo) material:0123456789
+  # Para informar mais de um mundo, separe por vírgula. (,)
+  # Atenção: o conteúdo dos mundos listados aqui será apagado.
 
-  # Normal
-  # ノーマル
+  # Overworld (normal)
   worldNameOfNormal: "material,material2:0123456789"
   # Nether
-  # ネザー
   worldNameOfNether: "material_nether"
-  # World the end
-  # ジ・エンド
+  # The End
   worldNameOfEnd: "material_the_end"
 
 border:
-  # World border size after reset (diameter)
-  # リセット後のワールドサイズを指定（直径）
+  # Tamanho da borda do mundo após o reset (diâmetro)
 
-  # Normal
-  # ノーマル
+  # Overworld (normal)
   worldOfNormalSize: 2000
   # Nether
-  # ネザー
   worldOfNetherSize: 2000
-  # World the end
-  # ジ・エンド
+  # The End
   worldOfEndSize: 6000
 
 gateInfo:
-  # Whether you are using Multiverse-Portals (true/false)
-  # MultiversePortalsを利用して素材世界への行き来をしているかどうか
+  # Se você utiliza o Multiverse-Portals. (true/false)
   useMultiversePortals: false
 
-  # If you are using "Multiverse-Portals", list the portal name of each world.
-  # MultiversePortalsを利用している場合；各素材世界のスポーン地点に利用しているポータル名を記載
+  # Se você utiliza o Multiverse-Portals, informe o nome do portal usado em cada mundo.
+  # A quantidade de nomes deve ser igual à quantidade de mundos em resetWorldInfo.
 
-  # Portal name (Normal)
-  # ポータル名（ノーマル）
+  # Nome do portal (Overworld/normal)
   portalNameOfNormal: "material_spawn"
-  # Portal name (Nether)
-  # ポータル名（ネザー）
+  # Nome do portal (Nether)
   portalNameOfNether: "materialnether_spawn"
-  # Portal name (The end)
-  # ポータル名（ジ・エンド）
+  # Nome do portal (The End)
   portalNameOfEnd: "materialend_spawn"
 
-  # If you are using "Multiverse Portals", Whether to generate structures around the portal. (true/false)
-  # MultiversePortalsを利用している場合；指定したワールドのポータルにゲート(構造物)を自動生成するかどうか
+  # Se você utiliza o Multiverse-Portals, se deve gerar a estrutura (gate)
+  # ao redor do portal do mundo indicado. (true/false)
 
-  # World name (Noemal)
-  # ワールド名（ノーマル）
+  # Overworld (normal)
   gateAutoBuildOfNormal: true
-  # World name (Nether)
-  # ワールド名（ネザー）
+  # Nether
   gateAutoBuildOfNether: true
-  # World name (The end)
-  # ワールド名（ジ・エンド）
+  # The End
   gateAutoBuildOfEnd: true
 
 dynmap:
 
-  # If you are using Dynmap, delete the rendered image on reset
-  # Dynmapを使用している場合、リセット時にレンダリング画像を削除するかどうか
+  # Se você utiliza o Dynmap, se deve apagar as imagens renderizadas no reset.
   useDynmap: false
 
-  # Whether to delete the map of the world (normal) to be reset
-  # リセット対象のワールド(ノーマル)のマップを削除するかどうか
+  # Se deve apagar o mapa dos mundos (Overworld) que serão resetados.
   mapPurgeAtResetOfNormal: false
-  # Whether to delete the map of the world (nether) to be reset
-  # リセット対象のワールド(ネザー)のマップを削除するかどうか
+  # Se deve apagar o mapa dos mundos (Nether) que serão resetados.
   mapPurgeAtResetOfNether: false
-  # Whether to delete the map of the world (the end) to be reset
-  # リセット対象のワールド(ジ・エンド)のマップを削除するかどうか
+  # Se deve apagar o mapa dos mundos (The End) que serão resetados.
   mapPurgeAtResetOfEnd: false
 
-  # If you want to delete the map data individually when resetting the specified time,
-  # enter the world name you want to delete.
-  # 指定時刻リセット時、個別にマップデータを削除したい場合削除したいワールド名を記載
+  # Se quiser apagar o mapa de mundo específico no reset,
+  # informe o nome do mundo que deseja apagar.
   mapPurgeAtResetWorldName: "world_test"
 
 # =======================================
-#  Backup setting
+#  Configuração do backup
 # =======================================
 
 backupWorldInfo:
-  # World name to reset
-  # リセットを行うワールド名
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載
+  # Nome dos mundos que serão salvos em backup.
+  # Para informar mais de um mundo, separe por vírgula. (,)
   backupWorldName: "world,world_nether"
 
 backupTime:
-  # Day of the week for automatic backup. (sun,mon,tue,wed,thu,fri,sat)
-  # バックアップを行う曜日
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載 (,)
+  # Dia da semana do backup automático. (sun,mon,tue,wed,thu,fri,sat)
+  # Para informar mais de um dia, separe por vírgula. (,)
   backupDayOfTheWeek: "sun"
 
-  # Backup time
-  # バックアップを行う時刻（hh:mm)
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載
+  # Horário do backup (hh:mm)
+  # Para informar mais de um horário, separe por vírgula. (,)
   backupTime: "00:00"
 
-  # Notify before backup time. (second)
-  # バックアップ時刻何秒前に通知するか（秒)
-  # If you specify more than one, separate them with commas. (,) Blank if you do not want to be notified.
-  # 複数指定する場合、カンマ区切りで記載。通知を行わない場合、空白のみにする。
+  # Avisos antes do backup, em segundos.
+  # Para informar mais de um, separe por vírgula. (,)
+  # Deixe em branco se não quiser avisos.
   backupNotifyTime: "300,60,30,10,5,4,3,2,1"
 
 backupLocation:
 
-  # Backup storage location
-  # バックアップの保存先
+  # Pasta de destino dos backups.
+  # Use "/" como separador, também no Windows (ex.: "C:/worldBackup/").
   fileLocation: "C:/worldBackup/"
 
 # =======================================
-#  Restart setting
+#  Configuração do reinício
 # =======================================
 
 restartTime:
-  # Day of the week for automatic restart. (sun,mon,tue,wed,thu,fri,sat)
-  # サーバー再起動を行う曜日
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載 (,)
+  # Dia da semana do reinício automático. (sun,mon,tue,wed,thu,fri,sat)
+  # Para informar mais de um dia, separe por vírgula. (,)
   restartDayOfTheWeek: "sun"
 
-  # Restart time
-  # サーバー再起動を行う時刻（hh:mm)
-  # If you specify more than one, separate them with commas. (,)
-  # 複数指定する場合、カンマ区切りで記載
+  # Horário do reinício (hh:mm)
+  # Para informar mais de um horário, separe por vírgula. (,)
   restartTime: "00:00"
 
-  # Notify before restart time. (second)
-  # サーバー再起動時刻何秒前に通知するか（秒)
-  # If you specify more than one, separate them with commas. (,) Blank if you do not want to be notified.
-  # 複数指定する場合、カンマ区切りで記載。通知を行わない場合、空白のみにする。
+  # Avisos antes do reinício, em segundos.
+  # Para informar mais de um, separe por vírgula. (,)
+  # Deixe em branco se não quiser avisos.
   restartNotifyTime: "300,60,30,10,5,4,3,2,1"

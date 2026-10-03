@@ -1,0 +1,103 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build do jar
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    env:
+      # Versoes do Multiverse usadas apenas em tempo de compilacao (escopo system).
+      # Altere aqui para compilar contra outra versao do Multiverse 5.x.
+      MV_CORE_VERSION: '5.8.1'
+      MV_PORTALS_VERSION: '5.3.0'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Baixar os jars do Multiverse
+        # O Multiverse 5.x nao publica jars em repositorios Maven publicos, por isso
+        # o pom.xml os declara com escopo system apontando para ./libs.
+        run: |
+          set -euo pipefail
+          mkdir -p libs
+
+          download() {
+            project="$1"
+            version="$2"
+            output="$3"
+
+            url=$(curl -fsSL "https://api.modrinth.com/v2/project/${project}/version" \
+              | jq -r --arg v "$version" \
+                '[.[] | select(.version_number == $v)][0].files
+                 | map(select(.filename | endswith(".jar"))) | .[0].url')
+
+            if [ -z "$url" ] || [ "$url" = "null" ]; then
+              echo "::error::Nao encontrado ${project} ${version} no Modrinth"
+              exit 1
+            fi
+
+            echo "Baixando ${project} ${version} -> ${output}"
+            curl -fsSL "$url" -o "${output}"
+          }
+
+          download multiverse-core "${MV_CORE_VERSION}" libs/multiverse-core.jar
+          download multiverse-portals "${MV_PORTALS_VERSION}" libs/multiverse-portals.jar
+
+          ls -l libs
+
+      - name: Build (Maven)
+        run: mvn -B clean package
+
+      - name: Verificar o jar gerado
+        run: |
+          set -euo pipefail
+          # O shade plugin tambem deixa um original-*.jar de backup;pegamos so o jar final.
+          jar=$(ls target/AutoWorldTools-*.jar)
+          echo "Artefato: ${jar}"
+          ls -lh "${jar}"
+          sha256sum "${jar}" | tee jar.sha256
+          # Falha se o jar nao contiver o plugin.yml nem a classe principal.
+          unzip -l "${jar}" | grep -E 'plugin.yml|com/github/rypengu23/autoworldtools/AutoWorldTools.class'
+
+      - name: Enviar artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoWorldTools
+          path: |
+            target/AutoWorldTools-*.jar
+            jar.sha256
+          if-no-files-found: error
+
+      - name: Publicar no release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          jar=$(ls target/AutoWorldTools-*.jar)
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" "${jar}" jar.sha256 --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" "${jar}" jar.sha256 \
+              --generate-notes --title "${GITHUB_REF_NAME}"
+          fi
