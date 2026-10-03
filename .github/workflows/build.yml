@@ -79,6 +79,19 @@ jobs:
           # Falha se o jar nao contiver o plugin.yml nem a classe principal.
           unzip -l "${jar}" | grep -E 'plugin.yml|com/github/rypengu23/autoworldtools/AutoWorldTools.class'
 
+      - name: Resumo da execucao
+        run: |
+          {
+            echo "## Build do AutoWorldTools"
+            echo
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Branch/tag: \`${GITHUB_REF_NAME}\`"
+            echo "- Jar: \`target/AutoWorldTools-*.jar\`"
+            echo "- sha256: \`$(cut -d' ' -f1 jar.sha256)\`"
+            echo
+            echo "O jar tambem fica anexado ao release \`v\$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout 2>/dev/null | tail -1)\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Enviar artefato
         uses: actions/upload-artifact@v4
         with:
@@ -88,16 +101,24 @@ jobs:
             jar.sha256
           if-no-files-found: error
 
-      - name: Publicar no release (tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publicar no release
+        # Publica sempre na release da versao atual do pom.xml (ex.: v1.8).
+        # Se a release nao existe, cria; se existe, substitui o jar e o sha256.
+        # Nao roda em pull requests.
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          version=$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout | tail -1)
+          tag="v${version}"
           jar=$(ls target/AutoWorldTools-*.jar)
-          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            gh release upload "${GITHUB_REF_NAME}" "${jar}" jar.sha256 --clobber
+
+          echo "Publicando ${jar} (sha256 $(cut -d' ' -f1 jar.sha256)) no release ${tag}"
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release upload "${tag}" "${jar}" jar.sha256 --clobber
           else
-            gh release create "${GITHUB_REF_NAME}" "${jar}" jar.sha256 \
-              --generate-notes --title "${GITHUB_REF_NAME}"
+            gh release create "${tag}" "${jar}" jar.sha256 \
+              --generate-notes --title "${tag}"
           fi
