@@ -1,5 +1,6 @@
 package com.github.rypengu23.autoworldtools.util;
 
+import com.github.rypengu23.autoworldtools.AutoWorldTools;
 import com.github.rypengu23.autoworldtools.config.ConfigLoader;
 import com.github.rypengu23.autoworldtools.config.ConsoleMessage;
 import com.github.rypengu23.autoworldtools.config.MainConfig;
@@ -200,6 +201,7 @@ public class ResetUtil {
             }
 
             //削除対象フォルダのパスを先に控えておく(アンロード後は World から取得できない)
+            //Paper 26.1以降、World#getWorldFolder は world/dimensions/<namespace>/<name> を返す
             File worldFolder = resetWorld.getWorldFolder();
 
             //プレイヤー退避
@@ -214,6 +216,7 @@ public class ResetUtil {
 
             //ワールドフォルダ削除
             Bukkit.getLogger().info("[AutoWorldTools] " + convertUtil.placeholderUtil("{worldname}", worldName, "{folder}", worldFolder.getPath(), ConsoleMessage.ResetUtil_deleteStart));
+            logRegionCount(worldName, worldFolder, ConsoleMessage.ResetUtil_regionCountBeforeDelete);
             deleteDirectory(worldFolder);
             int remainingFileCount = countRemainingFiles(worldFolder);
             if (remainingFileCount > 0) {
@@ -221,6 +224,8 @@ public class ResetUtil {
             }
 
             //ワールド生成
+            //Paper 26.1以降、WorldCreator#folder は存在しない。ワールドは名前(维度キー)から
+            //world/dimensions/<namespace>/<name> に作られるため、削除した場所と一致する
             WorldCreator worldCreator = new WorldCreator(worldName);
             if (worldInfo.useSeed()) {
                 worldCreator.seed(worldInfo.getSeed());
@@ -240,14 +245,19 @@ public class ResetUtil {
                 Bukkit.getLogger().warning("[AutoWorldTools] " + ConsoleMessage.ResetUtil_createFailure + worldName);
                 continue;
             }
-
-            //再生成されたワールドの検証用ログ( ….mca が増えていたら削除失敗の疑いがある)
-            File levelDat = new File(worldFolder, "level.dat");
+            //再生成されたワールドの検証用ログ
+            //Paper 26.1以降、level.dat は world 直下に1つだけ存在し、ワールドごとにできる region_*.mca
+            //が terrain の実体。region が 0 なら pasted 前と同じ地形はあり得ない
             Bukkit.getLogger().info("[AutoWorldTools] " + convertUtil.placeholderUtil(
                     "{worldname}", worldName,
-                    "{filecount}", String.valueOf(countRemainingFiles(worldFolder)),
-                    "{leveldat}", String.valueOf(levelDat.lastModified()),
+                    "{folder}", worldFolder.getPath(),
+                    "{regioncount}", String.valueOf(countRegionFiles(worldFolder)),
+                    "{seed}", String.valueOf(createdWorld.getSeed()),
                     ConsoleMessage.ResetUtil_newWorldInfo));
+
+            //region ファイルは spawn 領域の生成・保存が終わってから初めて Folder 内に現れるため、
+            // 再生成直後に数えると必ず 0 になる。一定時間後に数え直す(検証用ログ)。
+            scheduleRegionCountCheck(worldName, createdWorld.getWorldFolder());
 
             //ワールドボーダーをセット
             int worldSize = 0;
@@ -349,6 +359,60 @@ public class ResetUtil {
             Bukkit.getLogger().warning("[AutoWorldTools] " + file.getPath() + " : " + e.getMessage());
             return -1;
         }
+    }
+
+    /**
+     * ワールドフォルダ内の Chunk ファイル数( *.mca )を数える。
+     * Paper 26.1 以降、terrain/construções の実体はこのファイル群なので、
+     * 数が 0 でなければ古いワールドデータが再利用された疑いがある。
+     *
+     * @param file
+     * @return ファイル数。存在しない場合は 0
+     */
+    public int countRegionFiles(File file) {
+        if (!file.exists()) {
+            return 0;
+        }
+        try (Stream<Path> stream = Files.walk(file.toPath())) {
+            return (int) stream.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".mca"))
+                    .count();
+        } catch (IOException e) {
+            Bukkit.getLogger().warning("[AutoWorldTools] " + file.getPath() + " : " + e.getMessage());
+            return -1;
+        }
+    }
+
+/**
+ * region ファイル数を一定時間後に数え直してログする(検証用)。
+ * region ファイルは spawn 領域の生成と保存が完了するまで Folder 内に現れないため、
+ * 再生成直後の数(always 0)では判断できない。
+ *
+ * @param worldName
+ * @param worldFolder
+ */
+    private void scheduleRegionCountCheck(String worldName, File worldFolder) {
+        Bukkit.getScheduler().runTaskLater(AutoWorldTools.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                logRegionCount(worldName, worldFolder, ConsoleMessage.ResetUtil_regionCountAfterCreate);
+            }
+        }, 200L);
+    }
+
+    /**
+ * 検証用ログ(region ファイル数の記録)。
+     *
+     * @param worldName
+     * @param worldFolder
+     * @param message
+     */
+    private void logRegionCount(String worldName, File worldFolder, String message) {
+        Bukkit.getLogger().info("[AutoWorldTools] " + new ConvertUtil().placeholderUtil(
+                "{worldname}", worldName,
+                "{folder}", worldFolder.getPath(),
+                "{regioncount}", String.valueOf(countRegionFiles(worldFolder)),
+                message));
     }
 
     public void movePlayer(World world) {

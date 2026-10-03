@@ -13,8 +13,8 @@
 
     <description>World auto reset and backup plugin</description>
     <properties>
-        <!-- Multiverse 5.x exige Java 17+ -->
-        <java.version>17</java.version>
+        <!-- Paper 26.2 (paper-api 26.2) e compilado com class file 69 = Java 25 -->
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--
@@ -64,6 +64,10 @@
 
     <repositories>
         <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
@@ -91,9 +95,10 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.18-R0.1-SNAPSHOT</version>
+            <!-- Mesma versao de API do servidor alvo: Paper 26.2 (api-version 26.2) -->
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>26.2.build.121-stable</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

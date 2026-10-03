@@ -30,8 +30,8 @@ Desenvolvido por [rypengu23](https://github.com/rypengu23).
 
 | Item | Versão |
 | --- | --- |
-| Servidor | Spigot / Paper 1.16+ (testado até 1.18.2) |
-| Java | **17+** no servidor (requisito do Multiverse 5.x) |
+Paper 26.2 (API 26.2) / Spigot-Paper 1.16+ (testado até Paper 26.2.build.121-stable)
+| Java | **25+** no servidor (Paper 26.2 exige Java 25) |
 | Multiverse-Core | **Opcional** — não é mais necessário para o reset (veja [Compatibilidade](#compatibilidade)) |
 | Multiverse-Portals | **Opcional** — necessário apenas para reconfigurar portais / gerar warp gates (versão 5.x) |
 | DiscordSRV | **Opcional** — envia avisos no Discord |
@@ -244,7 +244,9 @@ A integração com portais usa a API do **Multiverse-Portals 5.x** (`MultiverseP
 
 ## Compilando a partir do código
 
-Requisitos: **JDK 17+** e Maven. O build usa `<release>17</release>` porque o Multiverse 5.x é compilado para Java 17.
+Requisitos: **JDK 25+** e Maven. O build usa `<release>25</release>` porque o `paper-api 26.2` é compilado com *class file* versão 69 (Java 25).
+
+O `pom.xml` compila contra `io.papermc.paper:paper-api:26.2.build.121-stable`, a mesma versão de API do servidor alvo, e o `plugin.yml` declara `api-version: '26.2'`.
 
 Os jars do Multiverse 5.x **não estão publicados em repositórios Maven públicos** (a Multiverse publica apenas no GitHub Packages, que exige autenticação). Por isso o `pom.xml` usa escopo `system` com o caminho dos jars definido por propriedade:
 
@@ -285,7 +287,7 @@ O workflow `.github/workflows/build.yml` faz o build do jar no próprio GitHub:
 Etapas do job:
 
 1. Baixa os jars do Multiverse do [Modrinth](https://modrinth.com/mod/multiverse-core) direto para `./libs` (as versões estão fixadas em `MV_CORE_VERSION` e `MV_PORTALS_VERSION` no topo do workflow).
-2. `mvn -B clean package` com Java 17.
+2. `mvn -B clean package` com Java 25.
 3. Valida o jar gerado (existe, tem `plugin.yml` e a classe principal) e grava o `sha256`.
 4. Envia o artefato para a aba *Actions*.
 5. **Release:** cria a release `v<versão do pom.xml>` (ex.: `v1.9`) com o jar e o `jar.sha256`; se ela já existir, os arquivos são substituídos. Assim a release de cada versão sempre tem o build mais recente, sem precisar criar tag manualmente.

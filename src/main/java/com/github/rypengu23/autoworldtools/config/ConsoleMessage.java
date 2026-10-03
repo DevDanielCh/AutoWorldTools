@@ -32,7 +32,9 @@ public class ConsoleMessage {
     public static String ResetUtil_deleteStart;
     public static String ResetUtil_deleteFailure;
     public static String ResetUtil_createFailure;
-    public static String ResetUtil_newWorldInfo;
+public static String ResetUtil_newWorldInfo;
+    public static String ResetUtil_regionCountBeforeDelete;
+    public static String ResetUtil_regionCountAfterCreate;
 
     public static String BackupUtil_backupStart;
     public static String BackupUtil_startZip;
@@ -102,7 +104,9 @@ public class ConsoleMessage {
             ResetUtil_deleteStart = "ワールドフォルダを削除します。 ワールド名:{worldname} フォルダ:{folder}";
             ResetUtil_deleteFailure = "ワールドフォルダを完全に削除できませんでした(残存ファイルあり)。 フォルダ:{folder} 残存:{remaining}";
             ResetUtil_createFailure = "ワールドを再作成できなかったため、リセットに失敗しました。 ワールド名:";
-            ResetUtil_newWorldInfo = "再作成されたワールド。 ワールド名:{worldname} フォルダ内のファイル数:{filecount} level.dat更新日時:{leveldat}";
+            ResetUtil_newWorldInfo = "再作成されたワールド。 ワールド名:{worldname} フォルダ:{folder} regionファイル数:{regioncount} seed:{seed}";
+            ResetUtil_regionCountBeforeDelete = "削除前のregionファイル数。 ワールド名:{worldname} フォルダ:{folder} regionファイル数:{regioncount}";
+            ResetUtil_regionCountAfterCreate = "再作成後のregionファイル数。 ワールド名:{worldname} フォルダ:{folder} regionファイル数:{regioncount}";
 
             BackupUtil_backupStart = "バックアップを開始します。 ワールド名:";
             BackupUtil_startZip = "ワールドファイルの圧縮中...";
@@ -165,7 +169,9 @@ public class ConsoleMessage {
             ResetUtil_deleteStart = "Deleting world folder. World:{worldname} Folder:{folder}";
             ResetUtil_deleteFailure = "World folder was not fully deleted. Folder:{folder} Remaining:{remaining}";
             ResetUtil_createFailure = "Reset failure. Failed to create world. World:";
-            ResetUtil_newWorldInfo = "Recreated world. World:{worldname} Files in folder:{filecount} level.dat:{leveldat}";
+            ResetUtil_newWorldInfo = "Recreated world. World:{worldname} Folder:{folder} Region files:{regioncount} Seed:{seed}";
+            ResetUtil_regionCountBeforeDelete = "Region files before delete. World:{worldname} Folder:{folder} Region files:{regioncount}";
+            ResetUtil_regionCountAfterCreate = "Region files after recreate. World:{worldname} Folder:{folder} Region files:{regioncount}";
 
             BackupUtil_backupStart = "Backup start. World:";
             BackupUtil_startZip = "Compressing world file...  World:";

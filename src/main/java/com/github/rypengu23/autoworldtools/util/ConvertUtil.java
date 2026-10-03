@@ -30,6 +30,14 @@ public class ConvertUtil {
         return placeholderUtil(beforeReplaceWord3, afterReplaceWord3, message);
     }
 
+    public String placeholderUtil(String beforeReplaceWord1, String afterReplaceWord1, String beforeReplaceWord2, String afterReplaceWord2, String beforeReplaceWord3, String afterReplaceWord3, String beforeReplaceWord4, String afterReplaceWord4, String message){
+
+        message = placeholderUtil(beforeReplaceWord1, afterReplaceWord1, message);
+        message = placeholderUtil(beforeReplaceWord2, afterReplaceWord2, message);
+        message = placeholderUtil(beforeReplaceWord3, afterReplaceWord3, message);
+        return placeholderUtil(beforeReplaceWord4, afterReplaceWord4, message);
+    }
+
     /**
      * カラーコードの文字を置き換える
      * @param word

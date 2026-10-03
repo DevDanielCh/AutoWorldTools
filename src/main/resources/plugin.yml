@@ -1,7 +1,7 @@
 name: AutoWorldTools
 version: 1.9
 main: com.github.rypengu23.autoworldtools.AutoWorldTools
-api-version: 1.16
+api-version: 26.2
 authors: [ rypengu23 ]
 description: World auto reset plugin
 softdepend: ['Multiverse-Core', 'Multiverse-Portals', 'DiscordSRV', 'dynmap']
